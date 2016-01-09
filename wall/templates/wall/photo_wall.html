@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+	<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>Beauty-Wall</title>
+
+	{% load staticfiles %}
+	
+  <link rel="stylesheet" href="{% static 'wall/card/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'wall/css/bootstrap.min.css' %}">
+  <!-- <link rel="stylesheet" href="{% static 'wall/dist/angular-carousel.css' %}"> -->
+  <!-- <link rel="stylesheet" href="{% static 'wall/css/demo.css' %}"> -->
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.9/angular-touch.min.js"></script>
+  <script src="{% static 'wall/dist/angular-carousel.min.js' %}"></script>
+  <script src="{% static 'wall/js/jquery.js' %}"></script>
+  <script src="{% static 'wall/js/bootstrap.min.js' %}"></script>
+
+
+  <style type="text/css">
+    body {
+        padding-top: 70px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+    }
+
+    .portfolio-item {
+        margin-bottom: 25px;
+    }
+
+    footer {
+        margin: 50px 0;
+    }
+
+    .carousel-caption-top {
+        top: 0;
+        bottom: auto;
+    }
+
+    .post-rate {
+        top:0;
+        left:0;
+        position: absolute;
+    }
+
+    .post-title {
+        bottom:0;
+        left:0;
+        position: absolute;
+    }
+
+    .thumbnail{
+        position:relative;
+
+    }
+
+    /*img {
+      max-height: 275px;
+      margin: auto;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }*/
+
+    /*.divs {
+      height: 275px;
+    }*/
+
+  </style>
+  <script type="text/javascript">
+    function turn_circle_list(img_list) {
+      var tmp_url = '';
+      var len = Object.keys(img_list).length;
+      for (var i=0 ; i<len-1 ; i++) {
+        console.log(i%len + '' + (i+1)%len);
+        tmp_url = img_list[i%len];
+        img_list[i%len] = img_list[(i+1)%len];
+        img_list[(i+1)%len] = tmp_url;
+      }
+      return img_list;
+    }
+
+    var contents = [];
+
+    var app = angular.module('myApp', [
+      'angular-carousel'
+      ]);
+    app.config(function($interpolateProvider) {
+        $interpolateProvider.startSymbol('{$');
+        $interpolateProvider.endSymbol('$}');
+    });
+
+    app.filter('rating', function() {
+      return function(input, rating, range) {
+        var output = [];
+        var count = 0;
+        var rate_arr = [{max:1999, min:0}, {max:49,min:10}, {max:99,min:50}, {max:1999,min:100}];
+        for(var i=0 ; i<input.length && count<range ; i++) {
+          if (input[i]['up'] >= rate_arr[rating].min && input[i]['up'] <= rate_arr[rating].max) {
+            output.push(input[i]);
+            count ++;
+          }
+        }
+        return output;
+      };
+    });
+
+    app.controller('myCtrl', function($scope) {
+      $scope.lists = [];
+      $scope.act = ['active '];
+      $scope.ranges = 18;
+      $scope.rate = 0;
+      $scope.reverse = '-date';
+      $scope.push = '';
+      $scope.change_img_order = function(){
+        $(this)[0].list.img_list = turn_circle_list($(this)[0].list.img_list);
+      };
+    });
+  
+
+    $.getJSON("get_info/{{ kind }}", function(Jdata, app){
+      angular.element($("#bind_ctrl")).scope().lists = Jdata;
+      angular.element($("#bind_ctrl")).scope().$apply();
+    })
+    .fail( function(d, textStatus, error) {
+      console.error("getJSON failed, status: " + textStatus + ", error: "+error);
+    });
+
+  $(window).ready(function(){
+    $('#rate_select').val(0);
+    $('#date_select').val('-date');
+    $('#push_select').val('');
+
+    $("#go_to_top").click(function(event){
+        event.preventDefault();
+        $("body").animate({"scrollTop": "0px"}, 1000);
+    })
+  });
+    
+  </script>
+</head>
+<body ng-controller="myCtrl" id="bind_ctrl" background="{% static 'wall/10.jpg' %}">
+	<!-- Navigation -->
+  <nav class="navbar navbar-default navbar-fixed-top topnav" role="navigation">
+      <div class="container" id="top">
+
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand topnav" href="#">PTT 表特{{ chinese_kind }}牆</a>
+              <span>
+                <a class="navbar-brand" id="go_to_top">回頂端</a>
+              </span>
+          </div>
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav navbar-right">
+                  <li>
+                      <a href="/1">正妹</a>
+                  </li>
+                  <li>
+                      <a href="/2">帥哥</a>
+                  </li>
+                  <li>
+                      <a href="/3">神人</a>
+                  </li>
+              </ul>
+          </div>
+          <!-- /.navbar-collapse -->
+      </div>
+      <!-- /.container -->
+  </nav>
+
+	<!-- Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Header -->
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-12">
+                <form class="form-inline">
+                  <div class="form-group col-md-12" style="padding-top:10px;">
+                    <span class="col-md-1">推數</span>
+                    <select class="form-control" id="rate_select" ng-model="rate" style="width:92px;">
+                      <option ng-value="3">100 up</option>
+                      <option ng-value="2">50 up</option>
+                      <option ng-value="1">10 up</option>
+                      <option ng-value="0">全部</option>
+                    </select>
+                  </div>
+                  <div class="form-group col-md-12" style="padding-top:10px;">
+                    <span class="col-md-1">時間排序</span>
+                    <select class="form-control" id="date_select" ng-model="reverse" style="width:92px;">
+                      <option ng-value="'-date'">較新</option>
+                      <option ng-value="'date'">較舊</option>
+                    </select>
+                  </div>
+                  <div class="form-group col-md-12" style="padding-top:10px;">
+                    <span class="col-md-1">推數排序</span>
+                    <select class="form-control" id="push_select" ng-model="push" style="width:92px;">
+                      <option ng-value="'-up'">較多</option>
+                      <option ng-value="'up'">較少</option>
+                      <option ng-value="''">不排序</option>
+                    </select>
+                  </div>
+                  <div class="form-group col-md-12" style="padding-top:10px;">
+                    <span class="col-md-1">搜尋</span>
+                    <span class="input-group col-md-2">
+                      <input type="search" id="search_text" class="form-control" placeholder="Search for ..." ng-model="search">
+                    </span>
+                  </div>
+                </form>
+            </div>
+          </div>
+          <!-- /.row -->
+        </div>
+
+        <hr/>
+
+
+        <div class="col-sm-12 col-xs-12 col-md-6 col-lg-4" ng-repeat="list in lists | filter:search:strict  | orderBy:reverse | orderBy:push | rating:rate:ranges" id="carousel-example-generic">
+          <div class="panel panel-default">
+            <div class="panel-thumbnail" ng-click="change_img_order()"><img ng-src="{$ list.img_list[0] $}" ng-init="index=0" class="img-responsive"></div>
+            <div class="panel-body">
+              <span clas="pull-left">
+                <p class="lead"><a href="{$ list.url $}" target="_blank">{$ list.title $}</a></p>
+                <span class="glyphicon glyphicon-thumbs-up text-success" style="font-size:20px;">{$ list.up $}</span>
+                <span class="glyphicon glyphicon-thumbs-down text-danger" style="font-size:20px;">{$ list.down $}</span>
+              </span>
+              <span class="pull-right">
+                <p>作者: {$ list.author $} ({$ list.ip $})</p>
+                <p>時間: {$ list.date $}</p>
+              </span>
+            </div>
+          </div>
+        </div><!--/col-->
+
+
+    </div>
+    <!-- /.container -->
+
+	<!-- /.container -->
+
+  <div class="container">
+
+      <hr>
+
+      <!-- Footer -->
+      <footer>
+          <div class="row">
+              <div class="col-lg-12">
+                  <p>Copyright &copy; Beauty Wall Website 2016</p>
+              </div>
+          </div>
+      </footer>
+
+  </div>
+  <!-- /.container -->
+
+  <script type="text/javascript">
+    $(window).scroll(function(){
+      console.log('window  ' + $(window).scrollTop());
+      console.log('heigth  ' + ($(document).height()-$(window).height()));
+      if ( $(window).scrollTop() >= ($(document).height()-$(window).height()-1) ){
+        console.log('loading more now');
+        angular.element($("#bind_ctrl")).scope().ranges += 18;
+        angular.element($("#bind_ctrl")).scope().$apply();
+      }
+    });
+  </script>
+</body>
+</html>
